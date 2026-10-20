@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  SOLUTION: ModelContextProtocol.Unity.slnx
+  SOLUTION: ModelContextProtocol.Unity.sln
   NUGET_REPO_URL: https://nuget.pkg.github.com/Motiony/index.json
 
 jobs:
