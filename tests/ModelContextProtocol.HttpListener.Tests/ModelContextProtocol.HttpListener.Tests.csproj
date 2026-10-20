@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Test host only. The libraries under test are netstandard2.0 (what Unity loads). -->
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <!-- Core is compiled against 10.x; xunit alone would resolve 6.0.0. -->
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" VersionOverride="10.0.10" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Load the same netstandard2.0 M.E.AI build that Unity uses. Core is compiled against it, and its
+       init-only setters have different signatures from the net8.0 build (MissingMethodException otherwise). -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" ExcludeAssets="compile;runtime" GeneratePathProperty="true" />
+    <Reference Include="Microsoft.Extensions.AI.Abstractions">
+      <HintPath>$(PkgMicrosoft_Extensions_AI_Abstractions)/lib/netstandard2.0/Microsoft.Extensions.AI.Abstractions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ModelContextProtocol.Core\ModelContextProtocol.Core.csproj" />
+    <ProjectReference Include="..\..\src\ModelContextProtocol.HttpListener\ModelContextProtocol.HttpListener.csproj" />
+  </ItemGroup>
+
+</Project>

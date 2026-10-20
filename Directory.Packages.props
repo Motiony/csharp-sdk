@@ -10,7 +10,8 @@
   <!-- Product dependencies shared -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.Extensions.AI" Version="$(MicrosoftExtensionsVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
+    <!-- 9.10.1 is the newest release that only needs System.Text.Json 8.x (Unity fork, pinned to 8.0.6). -->
+    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.10.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(System10Version)" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(System10Version)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(System10Version)" />
@@ -29,7 +30,7 @@
     <PackageVersion Include="System.Collections.Immutable" Version="$(System10Version)" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="$(System10Version)" />
     <PackageVersion Include="System.IO.Pipelines" Version="$(System10Version)" />
-    <PackageVersion Include="System.Text.Json" Version="$(System10Version)" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.6" />
     <PackageVersion Include="System.Threading.Channels" Version="$(System10Version)" />
   </ItemGroup>
 

@@ -1,0 +1,13 @@
+<!--
+  Copy into your Unity project's Assets folder (any subfolder) so IL2CPP code stripping
+  keeps the types that System.Text.Json and the MCP SDK reach through reflection.
+  Also add an <assembly fullname="YourToolsAssembly" preserve="all" /> entry for the
+  assembly that contains your [McpServerToolType] classes (e.g. Assembly-CSharp).
+-->
+<linker>
+  <assembly fullname="ModelContextProtocol.Core" preserve="all" />
+  <assembly fullname="ModelContextProtocol.HttpListener" preserve="all" />
+  <assembly fullname="Microsoft.Extensions.AI.Abstractions" preserve="all" />
+  <assembly fullname="System.Text.Json" preserve="all" />
+  <assembly fullname="Assembly-CSharp" preserve="all" />
+</linker>

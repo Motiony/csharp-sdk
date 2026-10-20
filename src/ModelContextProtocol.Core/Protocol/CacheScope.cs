@@ -16,7 +16,7 @@ namespace ModelContextProtocol.Protocol;
 /// When the field is absent from a response, clients should treat it as <see cref="Public"/>.
 /// </para>
 /// </remarks>
-[JsonConverter(typeof(JsonStringEnumConverter<CacheScope>))]
+[JsonConverter(typeof(CustomizableJsonStringEnumConverter<CacheScope>))]
 public enum CacheScope
 {
     /// <summary>

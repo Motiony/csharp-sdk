@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ModelContextProtocol.Analyzers/ModelContextProtocol.Analyzers.csproj" />
+    <Project Path="src/ModelContextProtocol.Core/ModelContextProtocol.Core.csproj" />
+    <Project Path="src/ModelContextProtocol.HttpListener/ModelContextProtocol.HttpListener.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/UnityMcpServer/UnityPlugins/UnityPlugins.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ModelContextProtocol.HttpListener.Tests/ModelContextProtocol.HttpListener.Tests.csproj" />
+  </Folder>
+</Solution>
