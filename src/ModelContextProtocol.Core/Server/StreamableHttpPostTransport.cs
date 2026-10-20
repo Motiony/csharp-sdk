@@ -18,6 +18,8 @@ internal sealed partial class StreamableHttpPostTransport(
     ILogger logger,
     Func<JsonRpcMessage?, ValueTask>? onResponseStarting = null) : ITransport
 {
+    // Explicit field: the Logging.Abstractions 8.x [LoggerMessage] generator (Unity pin) can't use primary-constructor parameters.
+    private readonly ILogger _logger = logger;
     private readonly SemaphoreSlim _messageLock = new(1, 1);
     private readonly TaskCompletionSource<bool> _httpResponseTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly SseEventWriter _httpSseWriter = new(responseStream);

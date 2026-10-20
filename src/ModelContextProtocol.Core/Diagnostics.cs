@@ -13,17 +13,12 @@ internal static class Diagnostics
 
     internal static Meter Meter { get; } = new("Experimental.ModelContextProtocol");
 
+    // System.Diagnostics.DiagnosticSource is pinned to 8.x (the version Unity bundles), which has no
+    // InstrumentAdvice, so the MCP semantic-convention bucket boundaries
+    // (0.01 ... 300 s, see https://github.com/open-telemetry/semantic-conventions/blob/main/docs/gen-ai/mcp.md#metrics)
+    // can't be advertised here. Configure them in the metrics exporter instead if needed.
     internal static Histogram<double> CreateDurationHistogram(string name, string description) =>
-        Meter.CreateHistogram(name, "s", description, advice: ExplicitBucketBoundaries);
-
-    /// <summary>
-    /// ExplicitBucketBoundaries specified in MCP semantic conventions for all MCP metrics.
-    /// See https://github.com/open-telemetry/semantic-conventions/blob/main/docs/gen-ai/mcp.md#metrics
-    /// </summary>
-    private static InstrumentAdvice<double> ExplicitBucketBoundaries { get; } = new()
-    {
-        HistogramBucketBoundaries = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 30, 60, 120, 300],
-    };
+        Meter.CreateHistogram<double>(name, "s", description);
 
     internal static ActivityContext ExtractActivityContext(this DistributedContextPropagator propagator, JsonRpcMessage message)
     {
