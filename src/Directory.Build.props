@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <PackageProjectUrl>https://csharp.sdk.modelcontextprotocol.io</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/modelcontextprotocol/csharp-sdk</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Motiony/csharp-sdk</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <VersionPrefix>2.2.0</VersionPrefix>
     <VersionSuffix></VersionSuffix>
