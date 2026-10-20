@@ -3,7 +3,7 @@ name: dotnet build
 on:
   pull_request:
     branches: [develop, main]
-  workflow_dispatch
+  workflow_dispatch:
 
 env:
   SOLUTION: ModelContextProtocol.Unity.slnx
