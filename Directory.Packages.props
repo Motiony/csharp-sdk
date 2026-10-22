@@ -10,11 +10,12 @@
   <!-- Product dependencies shared -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.Extensions.AI" Version="$(MicrosoftExtensionsVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
+    <!-- 9.10.1 is the newest release that only needs System.Text.Json 8.x (Unity fork, pinned to 8.0.6). -->
+    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.10.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(System10Version)" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(System10Version)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(System10Version)" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(System10Version)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(System10Version)" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
   </ItemGroup>
 
   <!-- Product dependencies < .NET 10 -->
@@ -22,14 +23,18 @@
     <PackageVersion Include="System.Net.ServerSentEvents" Version="$(System10Version)" />
   </ItemGroup>
 
-  <!-- Product dependencies .NET Standard -->
+  <!-- Product dependencies .NET Standard.
+       Unity 6 ships its own copies of Logging.Abstractions, DI.Abstractions, Collections.Immutable,
+       DiagnosticSource, System.Text.Json and friends (Editor/Data/BCLExtensions, see PackageOverrides.txt),
+       so these are pinned to the exact versions Unity bundles to avoid duplicate/mismatched assemblies. -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageVersion Include="Microsoft.Bcl.Memory" Version="$(System10Version)" />
     <PackageVersion Include="Microsoft.Bcl.TimeProvider" Version="8.0.1" />
-    <PackageVersion Include="System.Collections.Immutable" Version="$(System10Version)" />
-    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="$(System10Version)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
+    <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
     <PackageVersion Include="System.IO.Pipelines" Version="$(System10Version)" />
-    <PackageVersion Include="System.Text.Json" Version="$(System10Version)" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.6" />
     <PackageVersion Include="System.Threading.Channels" Version="$(System10Version)" />
   </ItemGroup>
 

@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Collects every DLL a Unity project needs into one folder:
+
+      dotnet publish samples/UnityMcpServer/UnityPlugins -c Release -o <UnityProject>/Assets/Plugins/Mcp
+
+    netstandard2.1 matches Unity's ".NET Standard 2.1" API level, so NuGet picks the netstandard2.1
+    facades (e.g. Microsoft.Bcl.AsyncInterfaces) that forward to types Unity already has, instead of
+    netstandard2.0 copies that would clash with them.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\ModelContextProtocol.HttpListener\ModelContextProtocol.HttpListener.csproj" />
+  </ItemGroup>
+
+  <!--
+    Unity 6 ships these in Editor/Data/BCLExtensions (versions in PackageOverrides.txt). Core pins the same
+    versions, so Unity's copies are used and publishing our own would create duplicate assemblies.
+    Publish with -p:ExcludeUnityBuiltInAssemblies=false for older Unity versions that don't bundle them.
+  -->
+  <PropertyGroup>
+    <ExcludeUnityBuiltInAssemblies Condition="'$(ExcludeUnityBuiltInAssemblies)' == ''">true</ExcludeUnityBuiltInAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <UnityBuiltInAssembly Include="Microsoft.Bcl.AsyncInterfaces" />
+    <UnityBuiltInAssembly Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <UnityBuiltInAssembly Include="Microsoft.Extensions.Logging.Abstractions" />
+    <UnityBuiltInAssembly Include="System.Collections.Immutable" />
+    <UnityBuiltInAssembly Include="System.Diagnostics.DiagnosticSource" />
+    <UnityBuiltInAssembly Include="System.Runtime.CompilerServices.Unsafe" />
+    <UnityBuiltInAssembly Include="System.Text.Encodings.Web" />
+    <UnityBuiltInAssembly Include="System.Text.Json" />
+  </ItemGroup>
+
+  <!-- This project has no code of its own; keep its empty assembly and debug files out of the Unity folder. -->
+  <Target Name="RemoveSelfFromPublish" AfterTargets="Publish">
+    <Delete Files="$(PublishDir)$(AssemblyName).dll;$(PublishDir)$(AssemblyName).pdb;$(PublishDir)$(AssemblyName).deps.json" />
+    <Delete Condition="'$(ExcludeUnityBuiltInAssemblies)' == 'true'" Files="@(UnityBuiltInAssembly->'$(PublishDir)%(Identity).dll')" />
+  </Target>
+
+</Project>

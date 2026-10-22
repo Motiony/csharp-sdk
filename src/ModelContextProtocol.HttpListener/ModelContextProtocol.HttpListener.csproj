@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageId>ModelContextProtocol.HttpListener</PackageId>
+    <Description>Stateless Streamable HTTP MCP server built on System.Net.HttpListener (no ASP.NET Core). Targets Unity and Android.</Description>
+    <EnablePackageValidation>false</EnablePackageValidation>
+    <NoWarn>$(NoWarn);CS0436;MCPEXP001;MCP9005</NoWarn>
+    <!-- Shared netstandard2.0 polyfills use unsafe code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Common\Throw.cs" Link="Throw.cs" />
+    <Compile Include="..\Common\McpHttpHeaders.cs" Link="McpHttpHeaders.cs" />
+    <Compile Include="..\Common\McpProtocolVersions.cs" Link="McpProtocolVersions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ModelContextProtocol.Core\ModelContextProtocol.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Ship link.xml so IL2CPP managed-code stripping keeps reflection-bound MCP types. -->
+    <None Include="link.xml" Pack="true" PackagePath="contentFiles/any/any/link.xml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

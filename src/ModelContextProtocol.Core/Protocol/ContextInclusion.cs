@@ -15,7 +15,7 @@ namespace ModelContextProtocol.Protocol;
 /// <see cref="SamplingCapability.Context"/> set. These values might be removed in future spec releases.
 /// </para>
 /// </remarks>
-[JsonConverter(typeof(JsonStringEnumConverter<ContextInclusion>))]
+[JsonConverter(typeof(CustomizableJsonStringEnumConverter<ContextInclusion>))]
 // Sampling support type: only used to select what context to include on sampling (createMessage) requests,
 // so it is deprecated together with sampling per SEP-2577.
 [Obsolete(Obsoletions.DeprecatedSampling_Message, DiagnosticId = Obsoletions.Deprecated_DiagnosticId, UrlFormat = Obsoletions.Deprecated_Url)]

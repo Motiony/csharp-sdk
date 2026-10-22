@@ -1,0 +1,43 @@
+name: dotnet build
+
+on:
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+env:
+  SOLUTION: ModelContextProtocol.Unity.sln
+  NUGET_REPO_URL: https://nuget.pkg.github.com/Motiony/index.json
+
+jobs:
+  build:
+
+    runs-on: ubuntu-slim
+    strategy:
+      matrix:
+        dotnet-version: [ '10.0.x' ]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Add Motiony nugets
+        run: dotnet nuget update source Motiony --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+
+      - name: Install dependencies
+        run: dotnet restore ${{ env.SOLUTION }} 
+
+      - name: Build Project
+        run: dotnet build ${{ env.SOLUTION }} --configuration Release --no-restore
+        
+      - name: Create the MModelContextProtocol package
+        run: dotnet pack src/ModelContextProtocol.Core/ModelContextProtocol.Core.csproj --configuration Release --no-restore --no-build --output nupkg -p:PackageId=MModelContextProtocol
+
+      - name: Create the MModelContextProtocol package
+        run: dotnet pack src/ModelContextProtocol.HttpListener/ModelContextProtocol.HttpListener.csproj --configuration Release --no-restore --no-build --output nupkg -p:PackageId=MModelContextProtocol.HttpListener
+
+      - name: Publish the package to repository
+        run: dotnet nuget push nupkg/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source ${{ env.NUGET_REPO_URL }}
