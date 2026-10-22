@@ -60,7 +60,8 @@ public sealed class McpHttpListenerServerTests : IDisposable
         httpOptions.Prefixes.Clear();
         httpOptions.Prefixes.Add($"http://localhost:{_port}/");
 
-        _server = new McpHttpListenerServer(options, httpOptions);
+        _server = new McpHttpListenerServer(options, httpOptions)
+            .MapGet("/info", () => new Implementation { Name = "game", Version = "2.0" });
         _server.Start();
     }
 
@@ -119,8 +120,16 @@ public sealed class McpHttpListenerServerTests : IDisposable
     [Fact]
     public void Runtime_LoadsSystemTextJson8()
     {
-        // Guards the fork's purpose: if a dependency drags in STJ 9/10, this host would load it instead.
+        // Guards the fork's purpose: Core must be compiled against STJ 8 (what Unity ships).
+        var referenced = typeof(McpJsonUtilities).Assembly.GetReferencedAssemblies()
+            .Single(a => a.Name == "System.Text.Json");
+        Assert.Equal(8, referenced.Version!.Major);
+
+#if !NET9_0_OR_GREATER
+        // On net8.0 the package wins over the shared framework, so a dependency dragging in STJ 9/10 shows up here.
+        // On net9+ the inbox STJ always wins, so this check only means something below that.
         Assert.Equal(8, typeof(JsonSerializer).Assembly.GetName().Version!.Major);
+#endif
     }
 
     [Fact]
@@ -161,6 +170,35 @@ public sealed class McpHttpListenerServerTests : IDisposable
         request.Headers.Add("Accept", "text/event-stream");
         using var response = await _http.SendAsync(request, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task MapGet_Object_ReturnsJson()
+    {
+        using var response = await GetAsync("/INFO");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Equal("game", json.RootElement.GetProperty("name").GetString());
+        Assert.Equal("2.0", json.RootElement.GetProperty("version").GetString());
+    }
+    
+    [Fact]
+    public async Task Get_UnmappedPath_Returns404()
+    {
+        using var response = await GetAsync("/nope");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+    
+    private async Task<HttpResponseMessage> GetAsync(string path, string? origin = null)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri($"http://localhost:{_port}{path}"));
+        if (origin is not null)
+        {
+            request.Headers.TryAddWithoutValidation("Origin", origin);
+        }
+
+        return await _http.SendAsync(request, TestContext.Current.CancellationToken);
     }
 
     [Fact]

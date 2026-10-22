@@ -1,6 +1,8 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Net;
+using System.Text.Json;
 
 namespace ModelContextProtocol.Server;
 
@@ -22,9 +24,11 @@ public sealed class McpHttpListenerServer : IDisposable
     private readonly HttpListener _listener = new();
     private readonly StatelessMcpRequestHandler _handler;
     private readonly ILogger _logger;
+    private readonly ConcurrentDictionary<string, Func<object?>> _routes = new(StringComparer.OrdinalIgnoreCase);
     private readonly CancellationTokenSource _stopping = new();
     private Task? _acceptLoop;
     private int _state; // 0 = created, 1 = started, 2 = stopped
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
     /// <summary>Creates a server. Call <see cref="Start"/> to begin listening.</summary>
     /// <param name="serverOptions">MCP options: server info, tools, prompts, resources and handlers.</param>
@@ -55,6 +59,19 @@ public sealed class McpHttpListenerServer : IDisposable
 
         _logger = loggerFactory?.CreateLogger<McpHttpListenerServer>() ?? NullLogger<McpHttpListenerServer>.Instance;
         _handler = new StatelessMcpRequestHandler(serverOptions, httpOptions, loggerFactory, services);
+    }
+
+    /// <summary>
+    /// </summary>
+    /// <param name="path">The request path, for example <c>/id</c>.</param>
+    /// <param name="handler">Produces the response body</param>
+    /// <returns>This server, for chaining.</returns>
+    public McpHttpListenerServer MapGet<T>(string path, Func<T> handler)
+    {
+        Throw.IfNull(path);
+        Throw.IfNull(handler);
+        _routes[path] = () => handler();
+        return this;
     }
 
     /// <summary>Gets a value indicating whether the server is listening.</summary>
@@ -126,17 +143,27 @@ public sealed class McpHttpListenerServer : IDisposable
                 continue;
             }
 
-            _ = Task.Run(() => HandleAsync(context, token));
+            if (context.Request.HttpMethod == "GET" && _routes.ContainsKey(context.Request.Url?.AbsolutePath ?? ""))
+            {
+                _ = Task.Run(() => HandleAsync(context, HandleRoute, token), CancellationToken.None);
+            }
+            else
+            {
+                _ = Task.Run(() => HandleAsync(context, _handler.HandleAsync, token), CancellationToken.None);
+            }
         }
     }
 
-    private async Task HandleAsync(HttpListenerContext context, CancellationToken token)
+    private async Task HandleAsync(HttpListenerContext context,
+        Func<HttpListenerContext, CancellationToken, Task> handler,
+        CancellationToken token)
     {
         try
         {
-            await _handler.HandleAsync(context, token).ConfigureAwait(false);
+            await handler(context, token).ConfigureAwait(false);
         }
-        catch (Exception ex) when (token.IsCancellationRequested || ex is HttpListenerException or ObjectDisposedException or IOException)
+        catch (Exception ex) when (token.IsCancellationRequested ||
+                                   ex is HttpListenerException or ObjectDisposedException or IOException)
         {
             // Client went away or the server is stopping.
         }
@@ -161,5 +188,22 @@ public sealed class McpHttpListenerServer : IDisposable
             {
             }
         }
+    }
+
+    private async Task HandleRoute(HttpListenerContext context, CancellationToken token)
+    {
+        if (_routes.TryGetValue(context.Request.Url?.AbsolutePath ?? "", out var func) && func != null)
+        {
+            await WriteResult(func(), context, token).ConfigureAwait(false);
+        }
+    }
+
+    private async Task WriteResult<T>(T response, HttpListenerContext context, CancellationToken cancellationToken)
+    {
+        using var resp = context.Response;
+        resp.ContentType = "application/json";
+        var buffer = JsonSerializer.SerializeToUtf8Bytes(response, _jsonSerializerOptions);
+        resp.ContentLength64 = buffer.Length;
+        await resp.OutputStream.WriteAsync(buffer, cancellationToken);
     }
 }
